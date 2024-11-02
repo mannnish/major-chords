@@ -1,25 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import SongInputForm from "./add_song/SongInputForm";
+import SongDisplay from "./display_song/SongDisplay";
+import HomePage from "./home/HomePage";
+import "./App.css";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          dev changes
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <Router>
+            <div className="App">
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/input" element={<SongInputForm />} />
+                    <Route path="/display/:id" element={<SongDisplay />} />
+                </Routes>
+            </div>
+        </Router>
+    );
 }
 
 export default App;
