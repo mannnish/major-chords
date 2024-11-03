@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { db } from "../utils/FirebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
 import { Link } from "react-router-dom";
+import * as Api from "../utils/Api";
+import { SongModel } from "../models/SongModel";
 import EnvProvider from "../utils/EnvProvider";
 
 const HomePage = () => {
@@ -9,10 +9,10 @@ const HomePage = () => {
     const [songs, setSongs] = useState([]);
 
     useEffect(() => {
-        const fetchSongs = async () => {
+        const loadSongs = async () => {
             try {
-                const querySnapshot = await getDocs(collection(db, EnvProvider.SONG_COLLECTION));
-                const songList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const songData = await Api.fetchSongs();
+                const songList = songData.map(SongModel.fromJson);
                 setSongs(songList);
             } catch (error) {
                 console.error("Error fetching songs:", error);
@@ -21,7 +21,7 @@ const HomePage = () => {
             }
         };
 
-        fetchSongs();
+        loadSongs();
     }, []);
 
     if (loading) return <p>Loading...</p>;
@@ -40,7 +40,7 @@ const HomePage = () => {
             <Link to="/input">
                 <button>Add Song</button>
             </Link>
-            <p>{process.env.REACT_APP_VERSION || "version-null"}</p>
+            <p>{EnvProvider.VERSION || "version-null"}</p>
         </div>
     );
 };

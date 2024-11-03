@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { db } from "../utils/FirebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
-import EnvProvider from "../utils/EnvProvider";
+import { fetchSongById } from '../utils/Api';
 
 const chordMap = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 const transposeChord = (chord, steps) => {
     const baseChord = chord.replace(/m|7|dim|aug/, '');
     const chordIndex = chordMap.indexOf(baseChord);
-    if (chordIndex === -1) return chord; // Return unchanged if chord is invalid
+    if (chordIndex === -1) return chord;
     const transposedIndex = (chordIndex + steps + chordMap.length) % chordMap.length;
     return chordMap[transposedIndex] + chord.replace(baseChord, '');
 };
@@ -21,11 +19,12 @@ const SongDisplay = () => {
 
     useEffect(() => {
         const fetchSong = async () => {
-            const songDoc = await getDoc(doc(db, EnvProvider.SONG_COLLECTION, id));
-            if (songDoc.exists()) {
-                setSongData(songDoc.data());
-            } else {
-                alert("No such document!");
+            try {
+                const tmp = await fetchSongById(id);
+                setSongData(tmp);
+            } catch (error) {
+                console.error("Error fetching song:", error);
+                alert("Error fetching song data.");
             }
         };
 
@@ -43,7 +42,7 @@ const SongDisplay = () => {
         let counter = 0;
         chords.forEach(chord => {
             const spacesToAdd = chord.position - lastPosition - (counter * 2);
-            counter += 1
+            counter += 1;
             if (spacesToAdd > 0) {
                 result += ' '.repeat(spacesToAdd);
             }
@@ -57,6 +56,7 @@ const SongDisplay = () => {
     if (!songData) return <p>Loading...</p>;
 
     const renderSongParts = () => {
+        // todo: sort on the basis of line-number
         return (
             <div>
                 {songData.data.map((part, partIndex) => (

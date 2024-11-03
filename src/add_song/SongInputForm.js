@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../utils/FirebaseConfig';
-import { collection, addDoc } from "firebase/firestore";
-import EnvProvider from '../utils/EnvProvider';
+import { saveSong } from '../utils/Api';
 
 const validChords = ["A", "B", "C", "D", "E", "F", "G", "Am", "Bm", "Cm", "Dm", "Em", "Fm", "Gm"];
 
@@ -18,7 +16,6 @@ const SongInputForm = () => {
         data: [],
     });
     const [generatedData, setGeneratedData] = useState(null);
-
     const navigate = useNavigate();
 
     const handleInputChange = (e) => {
@@ -37,7 +34,7 @@ const SongInputForm = () => {
         return lines.map((line, index) => {
             const lineData = {
                 line: line.replace(/\[(.*?)\]/g, ''), // Remove chords for plain text
-                "line-number": index + 1,
+                lineNumber: index + 1,
                 chords: []
             };
 
@@ -48,6 +45,7 @@ const SongInputForm = () => {
                 const chord = match[1];
                 if (!validChords.includes(chord)) {
                     alert(`Invalid chord detected: ${chord}`);
+                    // eslint-disable-next-line
                     return;
                 }
                 lineData.chords.push({ chord, position: match.index });
@@ -106,11 +104,10 @@ const SongInputForm = () => {
     const saveSongData = async () => {
         try {
             const data = generateSongData();
-            const docRef = await addDoc(collection(db, EnvProvider.SONG_COLLECTION), data);
-            navigate(`/display/${docRef.id}`);
+            const docId = await saveSong(data); // Call the saveSong function
+            navigate(`/display/${docId}`);
         } catch (error) {
-            console.error("Error saving song:", error);
-            alert("Error saving song. Please try again.");
+            alert(error);
         }
     };
 
